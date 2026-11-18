@@ -11,6 +11,7 @@ byte for byte, to <output>/entry.png. It runs with no network and
 writes the same bytes on every run.
 """
 
+import hashlib
 import os
 import struct
 import sys
@@ -78,7 +79,12 @@ def main() -> int:
     target = out_dir / "entry.png"
     target.write_bytes(data)
 
-    print(f"wrote {target} ({len(data)} bytes, {fmt} {width}x{height})")
+    # Read the copy back and prove it is the validated bytes, unchanged.
+    written = target.read_bytes()
+    if written != data:
+        raise ValueError("read-back mismatch: the copy differs from entry.png")
+    digest = hashlib.sha256(written).hexdigest()
+    print(f"wrote {target} ({len(written)} bytes, {fmt} {width}x{height}, sha256 {digest})")
     return 0
 
 
